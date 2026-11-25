@@ -18,7 +18,7 @@ async def on_message(message):
     msg = message.content.strip().lower()
 
     # Terima !setup, !setupvynn, !ping - semua jalan
-    if msg in ["!setup", "!setupvynn", "!ping"]:
+    if "!setup" in msg or "!setupvynn" in msg or "!ping" in msg:
         if msg == "!ping":
             await message.channel.send("Pong! Bot nyala ✅")
             return
