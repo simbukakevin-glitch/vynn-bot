@@ -20,4 +20,19 @@ async def shop(ctx):
 async def help(ctx):
     await ctx.send("Perintah: !ping - !shop - !help")
 TOKEN = os.getenv("TOKEN")
+# === PANEL VYNN SHOP ===
+@bot.command(name='panelvynn')
+@commands.has_permissions(administrator=True)
+async def panelvynn(ctx):
+    embed = discord.Embed(title='Vynn SHOP - BOT REDEEM REDFINGER', description='**Status Bot: 🟢 Online**\n**Queue: 0/50**\n**Status: 🔄 Auto Processing**\n\n**❕ Login Terlebih Dahulu Di Bawah Ini ⬇️**\nGunakan `/login` untuk memulai layanan redeem dan layanan lainnya.\n\n**🛒 Service**\n**Redeem Code - Rp 0 (Gratis)**\n**Replace - Rp 0 (Gratis)**\n**Renew Cloud - Rp 0 (Gratis)**\n**Upgrade Device - Rp 0 (Gratis)**', color=0x2b2d31)
+    embed.set_footer(text='Vynn SHOP • 2026')
+    view = discord.ui.View(timeout=None)
+    view.add_item(discord.ui.Button(label='Klik menuju Ticket', style=discord.ButtonStyle.primary, emoji='🎫', custom_id='ferzz_ticket'))
+    await ctx.send(embed=embed, view=view)
+    await ctx.message.delete()
+
+@bot.command(name='replace')
+async def replace_cmd(ctx):
+    await ctx.send(f'{ctx.author.mention} silahkan isi format replace:\n**Email:** \n**Device:** \n**Region:** \n**Alasan:**')
+
 bot.run(TOKEN)
