@@ -54,3 +54,33 @@ async def setupvynn(ctx):
             if not channel_lama:
                 await guild.create_text_channel(nama_channel, category=kategori)
     await ctx.send("✅ Server udah dirapihin kayak Ferz!")
+@bot.command()
+async def setupvynn(ctx):
+    guild = ctx.guild
+    everyone = guild.default_role
+
+    # Channel yang dikunci, member cuma bisa baca
+    dikunci = ["📣│announcement-autoredeem", "📚│cara-setting-akun", "📱│panel-autoredeem-rf", "🟩│succes-log", "💵│refund-log", "📝│rules-jubel", "📓│redfinger-order-tutorial"]
+
+    struktur = {
+        "---- ✦ ORDER ✦ ----": ["📓│redfinger-order-tutorial", "💰│bulk-order-code", "🎫│order-automatis-redfinger", "🎫│order-manual-redfinger", "🌐│order-via-website"],
+        "---- ✦ REDFINGER SERVICE ✦ ----": ["📣│announcement-autoredeem", "📚│cara-setting-akun", "📱│panel-autoredeem-rf", "💬│tanya-reedem", "🟩│succes-log", "💵│refund-log"],
+        "---- ✦ JUAL BELI ✦ ----": ["📝│rules-jubel", "🌳│jb-robux", "🌳│jb-growblox", "🌿│jb-gag", "🐬│jb-fishit"]
+    }
+
+    await ctx.send("⏳ Lagi ngerapihin server, tunggu 10 detik...")
+    for nama_kategori, list_channel in struktur.items():
+        kategori = discord.utils.get(guild.categories, name=nama_kategori)
+        if not kategori:
+            kategori = await guild.create_category(nama_kategori)
+        for nama_channel in list_channel:
+            channel_lama = discord.utils.get(guild.channels, name=nama_channel)
+            if channel_lama:
+                continue
+            if nama_channel in dikunci:
+                # Kunci: @everyone gak bisa kirim pesan
+                overwrites = {everyone: discord.PermissionOverwrite(send_messages=False)}
+                await guild.create_text_channel(nama_channel, category=kategori, overwrites=overwrites)
+            else:
+                await guild.create_text_channel(nama_channel, category=kategori)
+    await ctx.send("✅ BERES! Server udah rapi kayak Ferz, channel log udah dikunci!")
