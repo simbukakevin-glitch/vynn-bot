@@ -1,63 +1,81 @@
 import discord
 from discord.ext import commands
 import os
+import json
+import asyncio
+
+TOKEN = os.getenv("TOKEN") or os.getenv("DISCORD_TOKEN") or os.getenv("BOT_TOKEN")
+DATA_FILE = "data.json"
+
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot = commands.Bot(command_prefix="!", intents=intents,help_command=None)
+intents.guilds = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+def load_data():
+    if not os.path.exists(DATA_FILE):
+        return {"stock": {}}
+    try:
+        with open(DATA_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {"stock": {}}
+
+def save_data(data):
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
 @bot.event
 async def on_ready():
     print(f"Bot {bot.user} ONLINE!")
-    await bot.change_presence(activity=discord.Game(name="Vynn SHOP | !help"))
-@bot.command()
-async def ping(ctx):
-    await ctx.send(f"Pong! {round(bot.latency*1000)}ms - Vynn SHOP Online!")
-@bot.command()
-async def shop(ctx):
-    embed = discord.Embed(title="🛒 VYNN SHOP", description="Selamat datang di Vynn SHOP!", color=0x00ff00)
-    await ctx.send(embed=embed)
-@bot.command()
-async def help(ctx):
-    await ctx.send("Perintah: !ping - !shop - !help")
-TOKEN = os.getenv("TOKEN")
-# === PANEL VYNN SHOP ===
-@bot.command(name='panelvynn')
-@commands.has_permissions(administrator=True)
-async def panelvynn(ctx):
-    embed = discord.Embed(title='Vynn SHOP - BOT REDEEM REDFINGER', description='**Status Bot: 🟢 Online**\n**Queue: 0/50**\n**Status: 🔄 Auto Processing**\n\n**❕ Login Terlebih Dahulu Di Bawah Ini ⬇️**\nGunakan `/login` untuk memulai layanan redeem dan layanan lainnya.\n\n**🛒 Service**\n**Redeem Code - Rp 0 (Gratis)**\n**Replace - Rp 0 (Gratis)**\n**Renew Cloud - Rp 0 (Gratis)**\n**Upgrade Device - Rp 0 (Gratis)**', color=0x2b2d31)
-    embed.set_footer(text='Vynn SHOP • 2026')
-    view = discord.ui.View(timeout=None)
-    view.add_item(discord.ui.Button(label='Klik menuju Ticket', style=discord.ButtonStyle.primary, emoji='🎫', custom_id='ferzz_ticket'))
-    await ctx.send(embed=embed, view=view)
-    await ctx.message.delete()
+    print(f"Login sebagai {bot.user}")
 
-@bot.command(name='replace')
-async def replace_cmd(ctx):
-    await ctx.send(f'{ctx.author.mention} silahkan isi format replace:\n**Email:** \n**Device:** \n**Region:** \n**Alasan:**')
+@bot.command(name="panelvynn")
+async def panelvynn(ctx):
+    embed = discord.Embed(
+        title="🛒 VYNN SHOP - PANEL ORDER",
+        description="Selamat datang di Vynn Shop!\n\nPilih produk di bawah untuk order.\n\n**Cara Order:**\n1. Klik tombol produk\n2. Isi format order\n3. Bayar & tunggu proses",
+        color=0x2b2d31
+    )
+    embed.add_field(name="📦 Produk Tersedia", value="• Netflix\n• Spotify\n• CapCut Pro\n• Canva Pro\n• Alight Motion", inline=False)
+    embed.add_field(name="💳 Payment", value="DANA / OVO / GOPAY / QRIS", inline=False)
+    embed.set_footer(text="Vynn Shop • Fast & Trusted")
+    await ctx.send(embed=embed)
+
+@bot.command(name="replace")
+async def replace(ctx):
+    await ctx.send("Perintah replace siap! Ketik format yang mau diganti.")
+
 @bot.command()
 async def setupvynn(ctx):
+    await ctx.send("⏳ Lagi ngerapihin server, tunggu bentar...")
     guild = ctx.guild
-    everyone = guild.default_role
-    dikunci = ["📣│announcement-autoredeem", "📚│cara-setting-akun", "📱│panel-autoredeem-rf", "🟩│succes-log", "💵│refund-log", "📝│rules-jubel", "📓│redfinger-order-tutorial"]
+    # Hapus semua channel lama
+    for channel in list(guild.channels):
+        try:
+            await channel.delete()
+        except:
+            pass
+    await asyncio.sleep(1)
+    # Struktur baru
     struktur = {
-        "---- ✦ ORDER ✦ ----": ["📓│redfinger-order-tutorial", "💰│bulk-order-code", "🎫│order-automatis-redfinger", "🎫│order-manual-redfinger", "🌐│order-via-website"],
-        "---- ✦ REDFINGER SERVICE ✦ ----": ["📣│announcement-autoredeem", "📚│cara-setting-akun", "📱│panel-autoredeem-rf", "💬│tanya-reedem", "🟩│succes-log", "💵│refund-log"],
-        "---- ✦ JUAL BELI ✦ ----": ["📝│rules-jubel", "🌳│jb-robux", "🌳│jb-growblox", "🌿│jb-gag", "🐬│jb-fishit"]
+        "🔥・VYNN SHOP": ["👋・welcome", "📜・rules", "📢・announcement"],
+        "ℹ️・INFORMASI": ["📦・stock", "⭐・testimoni", "💸・payment"],
+        "🛒・TRANSAKSI": ["🛍️・order", "📝・chat", "🎫・ticket"],
+        "💬・SUPPORT": ["❓・help", "📩・complaint"],
     }
-    await ctx.send("⏳ Lagi ngerapihin server, tunggu 10 detik...")
-    for nama_kategori, list_channel in struktur.items():
-        kategori = discord.utils.get(guild.categories, name=nama_kategori)
-        if not kategori:
-            kategori = await guild.create_category(nama_kategori)
-        for nama_channel in list_channel:
-            channel_lama = discord.utils.get(guild.channels, name=nama_channel)
-            if channel_lama:
-                continue
-            if nama_channel in dikunci:
-                overwrites = {everyone: discord.PermissionOverwrite(send_messages=False)}
-                await guild.create_text_channel(nama_channel, category=kategori, overwrites=overwrites)
-            else:
-                await guild.create_text_channel(nama_channel, category=kategori)
-    await ctx.send("✅ BERES! Server udah rapi kayak Ferz, channel log udah dikunci!")
+    for cat_name, channels in struktur.items():
+        cat = await guild.create_category(cat_name)
+        for ch_name in channels:
+            await guild.create_text_channel(ch_name, category=cat)
+    await ctx.send("✅ Server udah dirapihin sama Vynn!")
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    print(f"Error: {error}")
 
 bot.run(TOKEN)
